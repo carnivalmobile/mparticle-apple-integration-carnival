@@ -92,22 +92,14 @@ NSString const *kInAppNotificationsEnabled = @"IN_APP_NOTIFICATIONS_ENABLED";
 }
 
 - (id const)providerKitInstance {
-    if (![self started]) {
-        return nil;
-    }
-
-    BOOL kitInstanceAvailable = NO;
-    if (kitInstanceAvailable) {
-        return nil;
-    } else {
-        return nil;
-    }
+    return nil;
 }
 
 
 #pragma mark Application
  - (MPKitExecStatus *)receivedUserNotification:(NSDictionary *)userInfo {
      [Carnival handleNotification:userInfo];
+     
      MPKitExecStatus *execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
      return execStatus;
  }
@@ -204,7 +196,6 @@ NSString const *kInAppNotificationsEnabled = @"IN_APP_NOTIFICATIONS_ENABLED";
 
 #pragma mark Events
  - (MPKitExecStatus *)logEvent:(MPEvent *)event {
-
      [Carnival logEvent:[event name]];
      MPKitExecStatus *execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
      return execStatus;
