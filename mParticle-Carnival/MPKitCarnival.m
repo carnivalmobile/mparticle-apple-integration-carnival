@@ -31,6 +31,7 @@
 NSUInteger MPKitInstanceCarnival = 999;
 NSString const *kSDKKey = @"APP_KEY";
 NSString const *kInAppNotificationsEnabled = @"IN_APP_NOTIFICATIONS_ENABLED";
+NSString const *kRegisterForPushOnStart = @"REGISTER_FOR_PUSH_ON_START";
 
 @implementation MPKitCarnival
 
@@ -72,12 +73,13 @@ NSString const *kInAppNotificationsEnabled = @"IN_APP_NOTIFICATIONS_ENABLED";
     dispatch_once(&kitPredicate, ^{
         
         BOOL inAppNotificationsEnabled = [self.configuration[kInAppNotificationsEnabled] boolValue];
+        BOOL registerForPushOnStart = [self.configuration[kRegisterForPushOnStart] boolValue];
         
         if (inAppNotificationsEnabled == false) {
             [Carnival setInAppNotificationsEnabled:inAppNotificationsEnabled];
         }
         
-        [Carnival startEngine:self.configuration[kSDKKey]];
+        [Carnival startEngine:self.configuration[kSDKKey] registerForPushNotifications:registerForPushOnStart];
 
         _started = YES;
 
