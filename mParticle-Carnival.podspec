@@ -20,6 +20,5 @@ Pod::Spec.new do |s|
 
     s.ios.pod_target_xcconfig = {
         'LIBRARY_SEARCH_PATHS' => '$(inherited) $(PODS_ROOT)/Carnival/**',
-        'OTHER_LDFLAGS' => '$(inherited) -l"Carnival"'
     }
 end
