@@ -19,188 +19,155 @@
 #import "MPKitCarnival.h"
 
 /* Import your header file here
-*/
+ */
 
 #ifdef COCOAPODS
-    #import "Carnival.h"
+#import "Carnival.h"
 #else
-    #import <Carnival/Carnival.h>
+#import <Carnival/Carnival.h>
 #endif
 
-// This is temporary to allow compilation (will be provided by core SDK)
-NSUInteger MPKitInstanceCarnival = 999;
+// This is temporary to allow compilation (will be provided by core SDK)  
 NSString const *kSDKKey = @"APP_KEY";
 NSString const *kInAppNotificationsEnabled = @"IN_APP_NOTIFICATIONS_ENABLED";
-NSString const *kRegisterForPushOnStart = @"REGISTER_FOR_PUSH_ON_START";
 
 @implementation MPKitCarnival
 
 /*
-    mParticle will supply a unique kit code for you. Please contact our team
-*/
+ mParticle will supply a unique kit code for you. Please contact our team
+ */
 + (NSNumber *)kitCode {
-    return @999;
+  return @99;
 }
 
 + (void)load {
-    MPKitRegister *kitRegister = [[MPKitRegister alloc] initWithName:@"Carnival" className:@"MPKitCarnival" startImmediately:YES];
-    [MParticle registerExtension:kitRegister];
+  MPKitRegister *kitRegister = [[MPKitRegister alloc] initWithName:@"Carnival" className:@"MPKitCarnival" startImmediately:YES];
+  [MParticle registerExtension:kitRegister];
 }
 
 #pragma mark - MPKitInstanceProtocol methods
 
 #pragma mark Kit instance and lifecycle
 - (nonnull instancetype)initWithConfiguration:(nonnull NSDictionary *)configuration startImmediately:(BOOL)startImmediately {
-    self = [super init];
-    NSString *appKey = configuration[kSDKKey];
-    if (!self || !appKey) {
-        return nil;
-    }
+  self = [super init];
+  NSString *appKey = configuration[kSDKKey];
 
-    _configuration = configuration;
-    
-
-    if (startImmediately) {
-        [self start];
-    }
-
-    return self;
+  if (!self || !appKey) {
+    return nil;
+  }
+  
+  _configuration = configuration;
+  
+  
+  if (startImmediately) {
+    [self start];
+  }
+  
+  return self;
 }
 
 - (void)start {
-    static dispatch_once_t kitPredicate;
+  static dispatch_once_t kitPredicate;
+  dispatch_once(&kitPredicate, ^{
+    BOOL inAppNotificationsEnabled = [self.configuration[kInAppNotificationsEnabled] boolValue];
+    if (!inAppNotificationsEnabled) {
+      [Carnival setInAppNotificationsEnabled:inAppNotificationsEnabled];
+    }
 
-    dispatch_once(&kitPredicate, ^{
-        
-        BOOL inAppNotificationsEnabled = [self.configuration[kInAppNotificationsEnabled] boolValue];
-        BOOL registerForPushOnStart = [self.configuration[kRegisterForPushOnStart] boolValue];
-        
-        if (inAppNotificationsEnabled == false) {
-            [Carnival setInAppNotificationsEnabled:inAppNotificationsEnabled];
-        }
-        
-        [Carnival startEngine:self.configuration[kSDKKey] registerForPushNotifications:registerForPushOnStart];
-
-        _started = YES;
-
-        dispatch_async(dispatch_get_main_queue(), ^{
-            NSDictionary *userInfo = @{mParticleKitInstanceKey:[[self class] kitCode]};
-
-            [[NSNotificationCenter defaultCenter] postNotificationName:mParticleKitDidBecomeActiveNotification
-                                                                object:nil
-                                                              userInfo:userInfo];
-        });
+    [Carnival setAutoIntegrationEnabled:NO];
+    [Carnival startEngine:self.configuration[kSDKKey] registerForPushNotifications:NO];
+    
+    _started = YES;
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+      NSDictionary *userInfo = @{mParticleKitInstanceKey:[[self class] kitCode]};
+      
+      [[NSNotificationCenter defaultCenter] postNotificationName:mParticleKitDidBecomeActiveNotification
+                                                          object:nil
+                                                        userInfo:userInfo];
     });
+  });
 }
 
 - (id const)providerKitInstance {
-    return nil;
+  return nil;
 }
 
-
 #pragma mark Application
- - (MPKitExecStatus *)receivedUserNotification:(NSDictionary *)userInfo {
-     [Carnival handleNotification:userInfo];
-     
-     MPKitExecStatus *execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
-     return execStatus;
- }
-
+- (MPKitExecStatus *)receivedUserNotification:(NSDictionary *)userInfo {
+  [Carnival handleNotification:userInfo];
+  
+  MPKitExecStatus *execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
+  return execStatus;
+}
 
 - (MPKitExecStatus *)setDeviceToken:(NSData *)deviceToken {
-     [Carnival setDeviceTokenInBackground:deviceToken];
-
-     MPKitExecStatus *execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
-     return execStatus;
- }
-
-/*
-    Implement this method if your SDK handles the iOS 9 and above App Delegate method to open URL with options
-*/
-// - (nonnull MPKitExecStatus *)openURL:(nonnull NSURL *)url options:(nullable NSDictionary<NSString *, id> *)options {
-//     /*  Your code goes here.
-//         If the execution is not successful, please use a code other than MPKitReturnCodeSuccess for the execution status.
-//         Please see MPKitExecStatus.h for all exec status codes
-//      */
-//
-//     MPKitExecStatus *execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
-//     return execStatus;
-// }
-
-/*
-    Implement this method if your SDK handles the iOS 8 and below App Delegate method open URL
-*/
-// - (nonnull MPKitExecStatus *)openURL:(nonnull NSURL *)url sourceApplication:(nullable NSString *)sourceApplication annotation:(nullable id)annotation {
-//     /*  Your code goes here.
-//         If the execution is not successful, please use a code other than MPKitReturnCodeSuccess for the execution status.
-//         Please see MPKitExecStatus.h for all exec status codes
-//      */
-//
-//     MPKitExecStatus *execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
-//     return execStatus;
-// }
+  [Carnival setDeviceTokenInBackground:deviceToken];
+  
+  MPKitExecStatus *execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
+  return execStatus;
+}
 
 #pragma mark User attributes and identities
- - (MPKitExecStatus *)setUserAttribute:(NSString *)key value:(NSString *)value {
-     NSError *error;
-     MPKitExecStatus *execStatus;
-     
-     CarnivalAttributes *map = [[CarnivalAttributes alloc] init];
-     [map setString:value forKey:key];
-     
-     [Carnival setAttributes:map error:&error];
-     
-     if (error) {
-         execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeFail];
-     } else {
-         execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
-     }
-     
-     return execStatus;
- }
+- (MPKitExecStatus *)setUserAttribute:(NSString *)key value:(NSString *)value {
+  NSError *error;
+  MPKitExecStatus *execStatus;
+  
+  CarnivalAttributes *map = [[CarnivalAttributes alloc] init];
+  [map setString:value forKey:key];
+  
+  [Carnival setAttributes:map error:&error];
+  
+  if (error) {
+    execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeFail];
+  } else {
+    execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
+  }
+  
+  return execStatus;
+}
 
- - (MPKitExecStatus *)removeUserAttribute:(NSString *)key {
-     NSError *error;
-     MPKitExecStatus *execStatus;
+- (MPKitExecStatus *)removeUserAttribute:(NSString *)key {
+  NSError *error;
+  MPKitExecStatus *execStatus;
+  
+  [Carnival removeAttributeWithKey:key error:&error];
+  
+  if (error) {
+    execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeFail];
+  } else {
+    execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
+  }
+  
+  return execStatus;
+}
 
-     [Carnival removeAttributeWithKey:key error:&error];
-
-     if (error) {
-         execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeFail];
-     } else {
-         execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
-     }
-     
-     return execStatus;
- }
-
- - (MPKitExecStatus *)setUserIdentity:(NSString *)identityString identityType:(MPUserIdentity)identityType {
-     MPKitExecStatus *execStatus;
-     
-     switch (identityType) {
-         case MPUserIdentityCustomerId:
-             [Carnival setUserId:identityString withResponse:nil];
-             execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
-             
-         case MPUserIdentityEmail:
-             [Carnival setUserEmail:identityString withResponse:nil];
-             execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
-             break;
-             
-         default:
-             execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeUnavailable];
-             break;
-     }
-     
-      return execStatus;
- }
-
+- (MPKitExecStatus *)setUserIdentity:(NSString *)identityString identityType:(MPUserIdentity)identityType {
+  MPKitExecStatus *execStatus;
+  
+  switch (identityType) {
+    case MPUserIdentityCustomerId:
+      [Carnival setUserId:identityString withResponse:nil];
+      execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
+      
+    case MPUserIdentityEmail:
+      [Carnival setUserEmail:identityString withResponse:nil];
+      execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
+      break;
+      
+    default:
+      execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeUnavailable];
+      break;
+  }
+  
+  return execStatus;
+}
 
 #pragma mark Events
- - (MPKitExecStatus *)logEvent:(MPEvent *)event {
-     [Carnival logEvent:[event name]];
-     MPKitExecStatus *execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
-     return execStatus;
- }
+- (MPKitExecStatus *)logEvent:(MPEvent *)event {
+  [Carnival logEvent:[event name]];
+  MPKitExecStatus *execStatus = [[MPKitExecStatus alloc] initWithSDKCode:@(MPKitInstanceCarnival) returnCode:MPKitReturnCodeSuccess];
+  return execStatus;
+}
 
 @end
